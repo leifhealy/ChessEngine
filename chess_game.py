@@ -2,14 +2,12 @@
 To do description
 
 # To dos: 
-
 - add control for pawns
 - add checks
 - add checkmate
 - add castling
 - add pawn promotion
 - add en passant
-- add update material score whenever a piece is taken
 
 '''
 import dirk
@@ -352,6 +350,9 @@ class ChessGame :
             self.handle_error('Illegal move.')
             return -1
         
+        final_rank, final_file = move[1]
+        move_is_taking_a_piece = not self.board['Pieces'][final_rank][final_file] == ''
+
         rank, file = move[0]
         piece = self.board["Pieces"][rank][file]
         colour = self.board["Colours"][rank][file]
@@ -364,6 +365,9 @@ class ChessGame :
         self.board["Colours"][rank][file] = colour
 
         self.update_whose_turn_it_is()
+
+        if move_is_taking_a_piece: 
+            self.update_material_scores()
 
         return 1
 
