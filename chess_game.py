@@ -61,9 +61,10 @@ class ChessGame :
                 colour = self.board["Colours"][rank][column]
 
                 if colour == 'B':
-                    square_string = ' |<piece>| '
+                    square_string = '|<piece>| '
                 elif colour =='W': 
-                    square_string = '  <piece>  '
+                    square_string = ' <piece>  '
+                else: square_string = '     '
                 
                 square_string = square_string.replace('<piece>',piece)
 
@@ -123,11 +124,11 @@ class ChessGame :
         reason = ''
         if self.no_piece_at_start_location(move): 
             reason = 'Illegal move: no piece at start location.'
-            return True, reason
+            return False, reason
         
-        if self.same_colour_piece_at_destination(self,move) :
+        if self.same_colour_piece_at_destination(move) :
             reason = 'Illegal move: cannot take own pieces.'
-            return True, reason
+            return False, reason
         
         rank,file = move[0]
         piece = self.board["Pieces"][rank][file]
@@ -147,6 +148,8 @@ class ChessGame :
             case other: 
                 pass # to do
         pass
+        
+        return True
 
     def move_piece(self, move): 
         '''
