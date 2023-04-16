@@ -13,6 +13,7 @@ To do description
 - refactor this_move_puts_me_in_check - it is not very readable with all those nested loops.
 -- I think when you come to checking for checks lines of sight will be more abstracted so it might pay to return here
    once that code is written.
+-- another issue is that you are using lists for vectors. It would be better to use numpy array
 
 Optimisation: 
 - mannually track the kings each time they are moved instead of searching the board again to find their location each move
@@ -56,9 +57,10 @@ class ChessGame :
 
         self.update_sparse_representation()
 
-    def relative_posistion_from_move(self, move): 
+    def relative_position_from_move(self, move): 
         ''' Calculated the change in position vector from a move array '''
-        return [move[1][0] - move[0][0]],[move[1][1]-move[0][1]]
+        relative_position = [move[1][0] - move[0][0],move[1][1]-move[0][1]]
+        return relative_position
 
     def update_sparse_representation(self): 
         '''
@@ -79,8 +81,10 @@ class ChessGame :
         '''
         Print a basic assci representation of the game to the terminal.
         '''
-        print_string = '-----------------------------------------\n'
+        print_string = '      f0   f1   f2   f3   f4   f5   f6   f7\n'
+        print_string = print_string + '    -----------------------------------------\n'
         for rank in range(8): 
+            print_string = print_string + ' r' + str(rank) + ' '
             for column in range(8):
                 square_string = ''
                 piece = self.board["Pieces"][rank][column]
@@ -97,7 +101,7 @@ class ChessGame :
                 print_string = print_string + square_string
 
             print_string = print_string +'|\n'
-            print_string = print_string + '-----------------------------------------\n'
+            print_string = print_string + '    -----------------------------------------\n'
 
         print(print_string)
     
@@ -263,7 +267,8 @@ class ChessGame :
         ''' Returns true if the proposed move puts the player into check and false otherwise. '''
         current_players_king_position = self.find_current_players_king()
         piece_to_be_moved_start_position = move[0]
-        king_to_piece_relative_position = piece_to_be_moved_start_position - current_players_king_position
+        king_to_piece_relative_position = [piece_to_be_moved_start_position[0] - current_players_king_position[0],
+                                           piece_to_be_moved_start_position[1] - current_players_king_position[1]]
 
         if not king_to_piece_relative_position[0] == king_to_piece_relative_position[1]: 
             # then there is no straight lines of sight between the king and the piece anyway
@@ -386,7 +391,7 @@ class ChessGame :
                     return [False, reason]
 
             case 'Pa': 
-                relative_position = self.relative_posistion_from_move(move)
+                relative_position = self.relative_position_from_move(move)
                 
                 if piece_to_move_colour == 'B': 
                     forward_direction = -1
@@ -444,12 +449,13 @@ class ChessGame :
         This function handles moving a piece to a new location. 'move' is a list of length two with the starting location 
         of the piece to be moved in the first entry and the final location in the second entry. 
 
-        Returns 1 to indicate success and -1 to indicate failure. 
+        Returns True to indicate success and False to indicate failure. 
         '''
         move_is_legal, reason = self.is_move_legal(move)
         if not move_is_legal: 
             self.handle_error('Illegal move.')
-            return -1
+    
+            return [False, reason]
         
         move_is_taking_a_piece = self.is_move_a_take(move)
 
@@ -469,7 +475,7 @@ class ChessGame :
         if move_is_taking_a_piece: 
             self.update_material_scores()
 
-        return 1
+        return [True, '']
 
     def update_whose_turn_it_is(self):
         ''' Updates the whose turn is is flag '''
