@@ -1,5 +1,10 @@
 '''
 To do description
+
+# To dos: 
+- add a flag to track whose turn it is
+- add error handling to fail moving a piece if it is not their turn
+
 '''
 import dirk
 import leif
@@ -210,15 +215,15 @@ class ChessGame :
         reason = ''
         if self.no_piece_at_start_location(move): 
             reason = 'Illegal move: no piece at start location.'
-            return False, reason
+            return [False, reason]
         
         if self.same_colour_piece_at_destination(move) :
             reason = 'Illegal move: cannot take own pieces.'
-            return False, reason
+            return [False, reason]
         
         if self.blocked_by_piece(move): 
             reason = 'Illegal move: attempting to move piece through other piece (excludes knights)'
-            return False, reason
+            return [False, reason]
         
         rank,file = move[0]
         piece = self.board["Pieces"][rank][file]
@@ -239,7 +244,7 @@ class ChessGame :
                 pass # to do
         pass
         
-        return True
+        return [True, reason]
 
     def move_piece(self, move): 
         '''
@@ -248,7 +253,8 @@ class ChessGame :
 
         Returns 1 to indicate success and -1 to indicate failure. 
         '''
-        if not self.is_move_legal(move): 
+        move_is_legal, reason = self.is_move_legal(move)
+        if not move_is_legal: 
             self.handle_error('Illegal move.')
             return -1
         
