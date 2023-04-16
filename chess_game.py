@@ -37,7 +37,7 @@ class ChessGame :
 
         self.create_sparse_representation()
 
-    def relative_posistion_from_move(move): 
+    def relative_posistion_from_move(self, move): 
         ''' Calculated the change in position vector from a move array '''
         return [move[1][0] - move[0][0]],[move[1][1]-move[0][1]]
 
@@ -213,7 +213,7 @@ class ChessGame :
 
         return False
 
-    def get_colour_full_name_from_letter(letter): 
+    def get_colour_full_name_from_letter(self, letter): 
         if letter == 'W': return 'white'
         if letter == 'B': return 'black'
         raise ValueError('Colour not found. This is likely due to a bug in the code.')
