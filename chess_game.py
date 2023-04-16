@@ -304,7 +304,7 @@ class ChessGame :
                         return True # because this would be a diagonal line of sight
                     else : return False # because thi would be a horizontal line of sight.
         
-    def position_is_on_the_board(position): 
+    def position_is_on_the_board(self,position): 
         if position[0] < 0 or position[0] > 7: return False
         elif position[1] < 0 or position[1] > 7: return False
         else : return True
@@ -329,15 +329,15 @@ class ChessGame :
         piece_to_move_file = move[0][1]
         piece_to_move_colour = self.board["Colours"][piece_to_move_rank][piece_to_move_file]
 
+        if self.no_piece_at_start_location(move): 
+            reason = 'Illegal move: no piece at start location.'
+            return [False, reason]
+
         if not piece_to_move_colour == self.player_whose_turn_it_is: 
             colour_full_name = self.get_colour_full_name_from_letter(piece_to_move_colour)
             reason = 'Illegal move: tried to move a {} piece but it is {}\'s turn.'.format(colour_full_name, self.player_whose_turn_it_is)
             return [False, reason]
 
-        if self.no_piece_at_start_location(move): 
-            reason = 'Illegal move: no piece at start location.'
-            return [False, reason]
-        
         if self.same_colour_piece_at_destination(move) :
             reason = 'Illegal move: cannot take own pieces.'
             return [False, reason]
