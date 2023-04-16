@@ -2,8 +2,6 @@
 To do description
 
 # To dos: 
-- add a flag to track whose turn it is
-- add error handling to fail moving a piece if it is not their turn
 
 '''
 import dirk
@@ -34,6 +32,8 @@ class ChessGame :
                                 ['W','W','W','W','W','W','W','W']]
         
         self.throw_exceptions =  throw_exceptions
+
+        self.player_whose_turn_it_is = 'W'
 
         self.create_sparse_representation()
 
@@ -213,11 +213,25 @@ class ChessGame :
 
         return False
 
+    def get_colour_full_name_from_letter(letter): 
+        if letter == 'W': return 'white'
+        if letter == 'B': return 'black'
+        raise ValueError('Colour not found. This is likely due to a bug in the code.')
+
     def is_move_legal(self, move): 
         '''
         This function returns true if a move is legal and false if not. In it's second return it gives the reason.
         '''
         reason = ''
+        piece_to_move_rank = move[0][0]
+        piece_to_move_file = move[0][1]
+        piece_to_move_colour = self.board["Colours"][piece_to_move_rank][piece_to_move_file]
+
+        if not piece_to_move_colour == self.player_whose_turn_it_is: 
+            colour_full_name = self.get_colour_full_name_from_letter(piece_to_move_colour)
+            reason = 'Illegal move: tried to move a {} piece but it is {}\'s turn.'.format(colour_full_name, self.player_whose_turn_it_is)
+            return [False, reason]
+
         if self.no_piece_at_start_location(move): 
             reason = 'Illegal move: no piece at start location.'
             return [False, reason]
@@ -320,6 +334,17 @@ class ChessGame :
         self.board["Pieces"][rank][file] = piece
         self.board["Colours"][rank][file] = colour
 
+        self.update_whose_turn_it_is()
+
         return 1
+
+    def update_whose_turn_it_is(self):
+        ''' Updates the whose turn is is flag '''
+        if self.player_whose_turn_it_is == 'W': 
+            self.player_whose_turn_it_is = 'B'
+        elif self.player_whose_turn_it_is == 'B': 
+            self.player_whose_turn_it_is = 'W'
+        else: 
+            raise ValueError('The player whose turn it is is not listed as either black or white. This indicates a bug.')
 
 
