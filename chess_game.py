@@ -107,13 +107,100 @@ class ChessGame :
 
         return False
 
-    def blocked_by_same_coloured_piece(self, move): 
-        '''Returns true if there is a same coloured piece in the way of the move'''
-        pass
+    '''To do: the following three functions re-use quite a lot of code. Can you abstract them to reduce repeatition?'''
+    def hozizontal_movement_is_blocked(self, start_file, final_file, rank): 
+        '''
+        Retruns true if a purely horizontal movement is blocked. Assumes movement is larger than 1 position. 
+        
+        Inputs: 
+        start_file = file of the piece at the start,
+        final_file = file of the piece at the end,
+        rank = the rank to be checked. 
+        '''
+        files_to_check = range(start_file, final_file)
+        for file in files_to_check: 
+            if file == start_file: continue # ignore itself when checking for interupting pieces
+            piece = self.board["Pieces"][rank][file]
+            
+            if not piece == '':
+                self.handle_error("Illegal move: tried to move a piece through another piece (excluding knights)")
+                return True
+        return False
+        
+    def vertical_movement_is_blocked(self, start_rank, final_rank, file): 
+        '''
+        Returns true if a purely vertical movement is blocked by another piece. Assumes movement is larger than 1 postion. 
 
-        # return false if it is a knight
+        Inputs: 
+        start_rank = the rank of the piece to be moved
+        final_rank = the rank that the piece is to be moved to
+        file = the file that it will be moving along. 
+        '''
+        ranks_to_check = range(start_rank, final_rank)
+        for rank in ranks_to_check: 
+            if rank == start_rank: continue # ignore itself when checking for interupting pieces
+            piece = self.board["Pieces"][rank][file]
+            
+            if not piece == '':
+                self.handle_error("Illegal move: tried to move a piece through another piece (excluding knights)")
+                return True
+        return False
 
-        # check a line between the two locations
+    def diagonal_movement_is_blocked(self, start_rank, final_rank, start_file, final_file): 
+        '''
+        Returns true if a purely vertical movement is blocked by another piece. Assumes movement is larger than 1 postion. 
+
+        Inputs: 
+        start_rank = the rank of the piece to be moved
+        final_rank = the rank that the piece is to be moved to
+        start_file = the file of the piece to be moved. 
+        final_file = the file that the piece is to be moved to. 
+        '''
+        ranks_to_check = range(start_rank, final_rank)
+        files_to_check = range(start_file, final_file)
+
+        for rank, file in zip(ranks_to_check, files_to_check): 
+            if rank == start_rank: continue
+            piece = self.board["Pieces"][rank][file]
+
+            if not piece == '': 
+                self.handle_error("Illegal move: tried to move a piece through another piece (excluding knights)")
+                return True
+            return False
+
+    def blocked_by_piece(self, move): 
+        '''Returns true if there is a piece in the way of the move'''
+        start_rank, start_file = move[0]
+        piece = self.board["Pieces"][start_rank][start_file]
+
+        if piece == 'Kn' : return False
+
+        final_rank, final_file = move[1]
+        rank_change = final_rank - start_rank
+        file_change = final_file - start_file
+
+        if abs(rank_change) <= 1 and abs(file_change) <= 1: return False
+
+        # The movement will either be: 
+        # A) a knight (which is already handled above by return false), or
+        # B) only a step of size 1 (which is already handled above), or
+        # C) any other piece making a purely horizontal, vertical or diagonal movement. 
+        #       lets handle each direction turn for simplicity
+        # horizontal
+        if rank_change == 0: 
+            if self.hozizontal_movement_is_blocked(start_file, final_file, start_rank):
+                return True
+
+        # vertical
+        elif file_change == 0: 
+            if self.vertical_movement_is_blocked(start_rank, final_rank, start_file): 
+                return True
+
+        # diagonal
+        else: 
+            if self.diagonal_movement_is_blocked(start_rank, final_rank, start_file, final_file): 
+                return True
+
         return False
 
     def is_move_legal(self, move): 
@@ -127,6 +214,10 @@ class ChessGame :
         
         if self.same_colour_piece_at_destination(move) :
             reason = 'Illegal move: cannot take own pieces.'
+            return False, reason
+        
+        if self.blocked_by_piece(move): 
+            reason = 'Illegal move: attempting to move piece through other piece (excludes knights)'
             return False, reason
         
         rank,file = move[0]
