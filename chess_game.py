@@ -37,6 +37,10 @@ class ChessGame :
 
         self.create_sparse_representation()
 
+    def relative_posistion_from_move(move): 
+        ''' Calculated the change in position vector from a move array '''
+        return [move[1][0] - move[0][0]],[move[1][1]-move[0][1]]
+
     def create_sparse_representation(self): 
         '''
         Creates a list of where all the pieces are at the start of the game
@@ -112,7 +116,8 @@ class ChessGame :
 
         return False
 
-    '''To do: the following three functions re-use quite a lot of code. Can you abstract them to reduce repeatition?'''
+    '''To do: the following three functions re-use quite a lot of code. Can you abstract them to reduce repeatition?
+        I think you can possibly just use the diagonal movement function for all three - need to check. '''
     def hozizontal_movement_is_blocked(self, start_file, final_file, rank): 
         '''
         Retruns true if a purely horizontal movement is blocked. Assumes movement is larger than 1 position. 
@@ -229,22 +234,68 @@ class ChessGame :
         piece = self.board["Pieces"][rank][file]
         match piece:
             case 'Kn': 
-                pass # to do
-            case 'Bi':
-                pass # to do
-            case 'Qu':
-                pass
-            case 'Ki':
-                pass
+                if not self.move_obeys_knight_movement_rules(move): 
+                    reason = 'Illegal move: a knight cannot move like that'
+                    return [False, reason]
+                
             case 'Ca':
-                pass
+                relative_position = self.relative_posistion_from_move(move)
+                move_obeys_castle_movement_rules = (relative_position[0] == 0 or relative_position[1]==0)
+
+                if not move_obeys_castle_movement_rules: 
+                    reason = 'Illegal move: a castle cannot move like that'
+                    return [False, reason]
+                
+            case 'Bi':
+                relative_position = self.relative_posistion_from_move(move)
+                move_obeys_bishop_movement_rules = abs(relative_position[0]) == abs(relative_position[1])
+
+                if not move_obeys_bishop_movement_rules: 
+                    reason = 'Illegal move: a bishop cannot move like that'
+                    return [False, reason]
+                
+            case 'Qu':
+                relative_position = self.relative_posistion_from_move(move)
+                move_obeys_queen_movement_rules = abs(relative_position[0]) == abs(relative_position[1]) or (relative_position[0] == 0 or relative_position[1]==0)
+                
+                if not move_obeys_queen_movement_rules: 
+                    reason = 'Illegal move: a queen cannot move like that'
+                    return [False, reason]
+                
+            case 'Ki':
+                relative_position = self.relative_posistion_from_move(move)
+                move_obeys_king_movement_rules = abs(relative_position[0]) <= 1 and abs(relative_position[1] <= 1)
+
+                if not move_obeys_king_movement_rules: 
+                    reason = 'Illegal move: a king cannot move like that'
+                    return [False, reason]
+
             case 'Pa':
-                pass
-            case other: 
-                pass # to do
-        pass
+                relative_position = self.relative_posistion_from_move(move)
+                
+                # To do: update the control for checking if pawn movements are illegal.
+
+                return [True, reason] 
+                
+            case '': 
+                raise ValueError('Trying to move a piece that does not exist. This error should have been handled elsewhere as well.')
         
         return [True, reason]
+
+    def move_obeys_knight_movement_rules(self, move):
+        '''
+        Checks if a move obeys knight movement rules. 
+        '''
+        move_obeys_knight_movement_rules = False
+        relative_position = self.relative_posistion_from_move(move)
+
+        allowed_relative_positions = [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]]
+
+        for allowed_relative_position in allowed_relative_positions: 
+            if relative_position == allowed_relative_position: 
+                move_obeys_knight_movement_rules = True
+        
+        return move_obeys_knight_movement_rules
 
     def move_piece(self, move): 
         '''
