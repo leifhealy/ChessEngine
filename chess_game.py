@@ -3,6 +3,14 @@ To do description
 
 # To dos: 
 
+- add control for pawns
+- add checks
+- add checkmate
+- add castling
+- add pawn promotion
+- add en passant
+- add update material score whenever a piece is taken
+
 '''
 import dirk
 import leif
@@ -34,14 +42,18 @@ class ChessGame :
         self.throw_exceptions =  throw_exceptions
 
         self.player_whose_turn_it_is = 'W'
+        
+        self.material_scores = {}
+        self.material_scores['W'] = 8 + 4*3 + 5*2 + 9
+        self.material_scores['B'] = self.material_scores['W']
 
-        self.create_sparse_representation()
+        self.update_sparse_representation()
 
     def relative_posistion_from_move(self, move): 
         ''' Calculated the change in position vector from a move array '''
         return [move[1][0] - move[0][0]],[move[1][1]-move[0][1]]
 
-    def create_sparse_representation(self): 
+    def update_sparse_representation(self): 
         '''
         Creates a list of where all the pieces are at the start of the game
         '''
@@ -94,6 +106,23 @@ class ChessGame :
         if piece_colour == '': 
             self.handle_error('Error: while checking if move is illegal no piece was found at the starting location.')
             return True
+    
+    def update_material_scores(self): 
+        self.material_scores['W'] = 0.0
+        self.material_scores['B'] = 0.0
+
+        self.update_sparse_representation()
+
+        for piece_type, piece_colour in self.sparse_representation: 
+            if piece_type == 'Pa': value = 1.0
+            elif piece_type == 'Ca': value = 5.0
+            elif piece_type == 'Kn': value = 3.0
+            elif piece_type == 'Bi': value = 3.0
+            elif piece_type == 'Qu': value = 9.0
+            elif piece_type == 'Ki': value = 0.0
+            else : value = 0.0
+
+            self.material_scores[piece_colour] = self.material_scores[piece_colour] + value
 
     def same_colour_piece_at_destination(self, move): 
         '''
