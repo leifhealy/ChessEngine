@@ -3,11 +3,20 @@ To do description
 
 # To dos: 
 - add checks
+-- add to is move illegal a check whether it puts the player in check
+-- add something at the end of a move that finds if a move it illegal
 - add checkmate
 - add castling
 - add pawn promotion
 - add en passant
-- refactor pawn is move legal to be more readable
+- refactor pawn is move legal to be more readable - similar to 'move_obeys_knight_movement_rules'
+- refactor this_move_puts_me_in_check - it is not very readable with all those nested loops.
+-- I think when you come to checking for checks lines of sight will be more abstracted so it might pay to return here
+   once that code is written.
+
+Optimisation: 
+- mannually track the kings each time they are moved instead of searching the board again to find their location each move
+-- this is required to check for checks and mates each time someone moves
 
 '''
 import dirk
@@ -240,6 +249,61 @@ class ChessGame :
 
         return False
 
+    def find_current_players_king(self): 
+        ''' 
+        Returns the position [rank, file] of the current players king 
+        '''
+        for rank in range(8): 
+            for file in range(8): 
+                if self.board["Colours"][rank][file] == self.player_whose_turn_it_is: 
+                    if self.board["Pieces"][rank][file] == 'Ki': 
+                        return [rank, file]
+                    
+    def this_move_puts_me_in_check(self, move): 
+        ''' Returns true if the proposed move puts the player into check and false otherwise. '''
+        current_players_king_position = self.find_current_players_king()
+        piece_to_be_moved_start_position = move[0]
+        king_to_piece_relative_position = piece_to_be_moved_start_position - current_players_king_position
+
+        if not king_to_piece_relative_position[0] == king_to_piece_relative_position[1]: 
+            # then there is no straight lines of sight between the king and the piece anyway
+            return False
+        
+        king_to_piece_relative_direction = [king_to_piece_relative_position[0]/abs(king_to_piece_relative_position[0]),
+                                            king_to_piece_relative_position[1]/abs(king_to_piece_relative_position[1])]
+
+        position = [current_players_king_position[0] + king_to_piece_relative_direction[0], 
+                    current_players_king_position[1] + king_to_piece_relative_direction[1]]
+        while position != piece_to_be_moved_start_position: 
+            if self.there_is_a_piece_here(position): 
+                return False # because there is a piece between the king and the piece being moved
+
+        position = [piece_to_be_moved_start_position[0] + king_to_piece_relative_direction[0], 
+                    piece_to_be_moved_start_position[1] + king_to_piece_relative_direction[1]]
+        while self.position_is_on_the_board(position): 
+            if self.there_is_a_piece_here(position): 
+                rank, file = position
+                piece = self.board["Pieces"][rank][file]
+                colour = self.board["Colours"][rank][file]
+
+                if colour == self.player_whose_turn_it_is: 
+                    return False # becasue our pieces don't put us in check
+                
+                if piece == 'Qu' : return True
+                elif piece == 'Ca': 
+                    if king_to_piece_relative_direction[0] == king_to_piece_relative_direction[1]: 
+                        return False # because this means it would be a diagonal line of sight
+                    else : return True # because this would be a horizontal line of sight
+                elif piece == 'Bi':
+                    if king_to_piece_relative_direction[0] == king_to_piece_relative_direction[1]: 
+                        return True # because this would be a diagonal line of sight
+                    else : return False # because thi would be a horizontal line of sight.
+        
+    def position_is_on_the_board(position): 
+        if position[0] < 0 or position[0] > 7: return False
+        elif position[1] < 0 or position[1] > 7: return False
+        else : return True
+
     def get_colour_full_name_from_letter(self, letter): 
         if letter == 'W': return 'white'
         if letter == 'B': return 'black'
@@ -277,6 +341,10 @@ class ChessGame :
             reason = 'Illegal move: attempting to move piece through other piece (excludes knights)'
             return [False, reason]
         
+        if self.this_move_puts_me_in_check(move): 
+            reason = 'Illegal move: this move puts you in check'
+            return [False, reason]
+
         rank,file = move[0]
         piece = self.board["Pieces"][rank][file]
         match piece:
@@ -412,4 +480,15 @@ class ChessGame :
         else: 
             raise ValueError('The player whose turn it is is not listed as either black or white. This indicates a bug.')
 
+    def there_is_a_piece_here(self, position): 
+        ''' Returns true if there is a piece at the position provied '''
+        rank, file = position
+        if self.board["Pieces"][rank][file] == '': 
+            return False
+        else : 
+            return True
+
+    def find_any_checks(): 
+        pass 
+        # To do
 
