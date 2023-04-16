@@ -23,9 +23,12 @@ if __name__ == '__main__':
     unit_test_successful = False
     print('Inital state of the board is:')
     game_state.print_game_state_to_terminal()
+    game_state.update_whose_turn_it_is() # I needed to add this in because I accidentally started moving the black pieces first
     move = [[1,3],[3,3]]
-    moved_successfully = game_state.move_piece(move)
+    moved_successfully, message = game_state.move_piece(move)
 
+    print('Attempting to move black pawn... I know starting with black is incorrect. I set up a work around in the testing. ')
+    print('Normally the game will be fored to start with the white player.')
     print('New state of the board is: ')
     game_state.print_game_state_to_terminal()
     rank, file = move[1]
@@ -38,7 +41,7 @@ if __name__ == '__main__':
     # Unit test 3: move white kings pawn forward by two places
     unit_test_successful = False
     move = [[6,4],[4,4]]
-    moved_successfully = game_state.move_piece(move)
+    moved_successfully, message = game_state.move_piece(move)
 
     print('Moving the white kings pawn.')
     print('New state of the board is: ')
@@ -50,7 +53,7 @@ if __name__ == '__main__':
 
     print('Attempting to move a queen vertically through a pawn...')
     game_state.throw_exceptions = False
-    move_result = game_state.move_piece(move)
+    move_result, message = game_state.move_piece(move)
     if move_result == -1: 
         print('Game state returned -1 for illegal move. Which is correct.')
         print('New board positions are:')
@@ -61,8 +64,5 @@ if __name__ == '__main__':
         game_state.print_game_state_to_terminal()
         report_failure()
     
-
-    
-
     # ===========================================================
     # Unit test N: try to move a pawn backwards
