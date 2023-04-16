@@ -50,10 +50,8 @@ class ChessGame :
     def print_game_state_to_terminal(self): 
         '''
         Print a basic assci representation of the game to the terminal.
-
-        I think there is a bug with this, but I will come back to fix it later. 
         '''
-        print_string = ''
+        print_string = '-----------------------------------------\n'
         for rank in range(8): 
             for column in range(8):
                 square_string = ''
@@ -61,16 +59,17 @@ class ChessGame :
                 colour = self.board["Colours"][rank][column]
 
                 if colour == 'B':
-                    square_string = '|<piece>| '
+                    square_string =   '|:<>:'
                 elif colour =='W': 
-                    square_string = ' <piece>  '
-                else: square_string = '     '
+                    square_string =   '| <> '
+                else: square_string = '|    '
                 
-                square_string = square_string.replace('<piece>',piece)
+                square_string = square_string.replace('<>',piece)
 
                 print_string = print_string + square_string
 
-            print_string = print_string +'\n'
+            print_string = print_string +'|\n'
+            print_string = print_string + '-----------------------------------------\n'
 
         print(print_string)
     
