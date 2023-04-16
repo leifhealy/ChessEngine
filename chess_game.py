@@ -2,12 +2,12 @@
 To do description
 
 # To dos: 
-- add control for pawns
 - add checks
 - add checkmate
 - add castling
 - add pawn promotion
 - add en passant
+- refactor pawn is move legal to be more readable
 
 '''
 import dirk
@@ -245,6 +245,12 @@ class ChessGame :
         if letter == 'B': return 'black'
         raise ValueError('Colour not found. This is likely due to a bug in the code.')
 
+    def is_move_a_take(self, move): 
+        ''' Returns true if move is a take and false otherwise '''
+        final_rank = move[1][0]
+        final_file = move[1][1]
+        return not self.board['Pieces'][final_rank][final_file] == ''
+
     def is_move_legal(self, move): 
         '''
         This function returns true if a move is legal and false if not. In it's second return it gives the reason.
@@ -311,11 +317,38 @@ class ChessGame :
                     reason = 'Illegal move: a king cannot move like that'
                     return [False, reason]
 
-            case 'Pa':
+            case 'Pa': 
                 relative_position = self.relative_posistion_from_move(move)
                 
-                # To do: update the control for checking if pawn movements are illegal.
+                if piece_to_move_colour == 'B': 
+                    forward_direction = -1
+                    is_first_move = move[0][0] == 1
+                elif piece_to_move_colour == 'W': 
+                    forward_direction = 1
+                    is_first_move = move[0][0] == 6
+                
+                if not relative_position[0] / abs(relative_position[0]) == forward_direction: 
+                    reason = 'Illegal move: tried move a pawn backward'
+                    return [False, reason]
+                
+                if not is_first_move: 
+                    if not relative_position[0] <= 1: 
+                        reason = 'Illegal move: tried to move a pawn by more than 1 place after it\'s already moved'
+                        return [False,reason]
+                else : 
+                    if not relative_position[0] <= 2: 
+                        reason = 'Illegal move: tried to move pawn by more than 2 places'
+                        return [False, reason]
 
+                move_is_a_take = self.is_move_a_take(move)
+                if not move_is_a_take and relative_position[1] > 0: 
+                    reason = 'Illegal move: tried to move a pawn horizontally without taking'
+                    return [False, reason]
+                
+                if move_is_a_take and relative_position[1] > 1: 
+                    reason = 'Illegal move: tried to move a pawn further than 1 square horizontally'
+                    return [False, reason]
+                    
                 return [True, reason] 
                 
             case '': 
@@ -350,8 +383,7 @@ class ChessGame :
             self.handle_error('Illegal move.')
             return -1
         
-        final_rank, final_file = move[1]
-        move_is_taking_a_piece = not self.board['Pieces'][final_rank][final_file] == ''
+        move_is_taking_a_piece = self.is_move_a_take(move)
 
         rank, file = move[0]
         piece = self.board["Pieces"][rank][file]
