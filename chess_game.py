@@ -269,6 +269,9 @@ class ChessGame :
         piece_to_be_moved_start_position = move[0]
         king_to_piece_relative_position = [piece_to_be_moved_start_position[0] - current_players_king_position[0],
                                            piece_to_be_moved_start_position[1] - current_players_king_position[1]]
+        
+        if king_to_piece_relative_position[0] == 0 and king_to_piece_relative_direction == 0: 
+            return False # The move is the king
 
         if not king_to_piece_relative_position[0] == king_to_piece_relative_position[1]: 
             # then there is no straight lines of sight between the king and the piece anyway
